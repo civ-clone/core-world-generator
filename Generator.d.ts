@@ -2,7 +2,7 @@ import Terrain from '@civ-clone/core-terrain/Terrain';
 export interface IGenerator {
   coordsToIndex(x: number, y: number): number;
   distanceFrom(from: number, to: number): number;
-  generate(): Terrain[];
+  generate(): Promise<Terrain[]>;
   height(): number;
   indexToCoords(index: number): [number, number];
   options(): {
@@ -21,7 +21,7 @@ export declare class Generator implements IGenerator {
   );
   coordsToIndex(x: number, y: number): number;
   distanceFrom(from: number, to: number): number;
-  generate(): Terrain[];
+  generate(): Promise<Terrain[]>;
   height(): number;
   indexToCoords(index: number): [number, number];
   options(): {

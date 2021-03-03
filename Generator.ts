@@ -3,7 +3,7 @@ import Terrain from '@civ-clone/core-terrain/Terrain';
 export interface IGenerator {
   coordsToIndex(x: number, y: number): number;
   distanceFrom(from: number, to: number): number;
-  generate(): Terrain[];
+  generate(): Promise<Terrain[]>;
   height(): number;
   indexToCoords(index: number): [number, number];
   options(): { [key: string]: any };
@@ -69,7 +69,7 @@ export class Generator implements IGenerator {
     return shortestDistance;
   }
 
-  generate(): Terrain[] {
+  generate(): Promise<Terrain[]> {
     throw new Error(
       `Generator#generate(): Must be overridden in '${this.constructor.name}'.`
     );
