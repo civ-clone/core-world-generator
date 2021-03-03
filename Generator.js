@@ -15,6 +15,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _height, _options, _width;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Generator = void 0;
+const coordsToIndex_1 = require("./lib/coordsToIndex");
+const distanceFrom_1 = require("./lib/distanceFrom");
+const getNeighbours_1 = require("./lib/getNeighbours");
+const indexToCoords_1 = require("./lib/indexToCoords");
 class Generator {
     constructor(height, width, options = {}) {
         _height.set(this, void 0);
@@ -25,53 +29,22 @@ class Generator {
         __classPrivateFieldSet(this, _width, width);
     }
     coordsToIndex(x, y) {
-        while (x < 0) {
-            x += this.width();
-        }
-        while (y < 0) {
-            y += this.height();
-        }
-        x = x % this.width();
-        y = y % this.height();
-        return y * this.width() + x;
+        return coordsToIndex_1.default(__classPrivateFieldGet(this, _height), __classPrivateFieldGet(this, _width), x, y);
     }
     distanceFrom(from, to) {
-        const [fromX, fromY] = this.indexToCoords(from), [toX, toY] = this.indexToCoords(to), map = [
-            [-1, 1],
-            [-1, 0],
-            [-1, -1],
-            [0, 1],
-            [0, 0],
-            [0, -1],
-            [1, 1],
-            [1, 0],
-            [1, -1],
-        ], [shortestDistance] = map
-            .map(([x, y]) => [
-            x * this.width(),
-            y * this.height(),
-        ])
-            .map(([x, y]) => [
-            fromX - toX + x,
-            fromY - toY + y,
-        ])
-            .map((coords) => Math.hypot(...coords))
-            .sort((a, b) => a - b);
-        return shortestDistance;
+        return distanceFrom_1.default(__classPrivateFieldGet(this, _height), __classPrivateFieldGet(this, _width), from, to);
     }
     generate() {
         throw new Error(`Generator#generate(): Must be overridden in '${this.constructor.name}'.`);
+    }
+    getNeighbours(index, directNeighbours = true) {
+        return getNeighbours_1.default(__classPrivateFieldGet(this, _height), __classPrivateFieldGet(this, _width), index, directNeighbours);
     }
     height() {
         return __classPrivateFieldGet(this, _height);
     }
     indexToCoords(index) {
-        const total = this.height() * this.width();
-        while (index < 0) {
-            index += total;
-        }
-        index = index % total;
-        return [index % this.width(), Math.floor(index / this.width())];
+        return indexToCoords_1.default(__classPrivateFieldGet(this, _height), __classPrivateFieldGet(this, _width), index);
     }
     options() {
         return __classPrivateFieldGet(this, _options);

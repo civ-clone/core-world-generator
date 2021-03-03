@@ -1,9 +1,14 @@
 import Terrain from '@civ-clone/core-terrain/Terrain';
+import coordsToIndex from './lib/coordsToIndex';
+import distanceFrom from './lib/distanceFrom';
+import getNeighbours from './lib/getNeighbours';
+import indexToCoords from './lib/indexToCoords';
 
 export interface IGenerator {
   coordsToIndex(x: number, y: number): number;
   distanceFrom(from: number, to: number): number;
   generate(): Promise<Terrain[]>;
+  getNeighbours(index: number, directNeighbours: boolean): number[];
   height(): number;
   indexToCoords(index: number): [number, number];
   options(): { [key: string]: any };
@@ -26,47 +31,11 @@ export class Generator implements IGenerator {
   }
 
   coordsToIndex(x: number, y: number): number {
-    while (x < 0) {
-      x += this.width();
-    }
-
-    while (y < 0) {
-      y += this.height();
-    }
-
-    x = x % this.width();
-    y = y % this.height();
-
-    return y * this.width() + x;
+    return coordsToIndex(this.#height, this.#width, x, y);
   }
 
   distanceFrom(from: number, to: number): number {
-    const [fromX, fromY]: [number, number] = this.indexToCoords(from),
-      [toX, toY]: [number, number] = this.indexToCoords(to),
-      map: [number, number][] = [
-        [-1, 1],
-        [-1, 0],
-        [-1, -1],
-        [0, 1],
-        [0, 0],
-        [0, -1],
-        [1, 1],
-        [1, 0],
-        [1, -1],
-      ],
-      [shortestDistance]: number[] = map
-        .map(([x, y]: [number, number]): [number, number] => [
-          x * this.width(),
-          y * this.height(),
-        ])
-        .map(([x, y]: [number, number]): [number, number] => [
-          fromX - toX + x,
-          fromY - toY + y,
-        ])
-        .map((coords: [number, number]): number => Math.hypot(...coords))
-        .sort((a: number, b: number): number => a - b);
-
-    return shortestDistance;
+    return distanceFrom(this.#height, this.#width, from, to);
   }
 
   generate(): Promise<Terrain[]> {
@@ -75,20 +44,16 @@ export class Generator implements IGenerator {
     );
   }
 
+  getNeighbours(index: number, directNeighbours: boolean = true): number[] {
+    return getNeighbours(this.#height, this.#width, index, directNeighbours);
+  }
+
   height(): number {
     return this.#height;
   }
 
   indexToCoords(index: number): [number, number] {
-    const total: number = this.height() * this.width();
-
-    while (index < 0) {
-      index += total;
-    }
-
-    index = index % total;
-
-    return [index % this.width(), Math.floor(index / this.width())];
+    return indexToCoords(this.#height, this.#width, index);
   }
 
   options(): { [key: string]: any } {
