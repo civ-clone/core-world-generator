@@ -6,7 +6,8 @@ import {
 export interface IGeneratorRegistry extends IConstructorRegistry<Generator> {}
 export declare class GeneratorRegistry
   extends ConstructorRegistry<Generator>
-  implements IGeneratorRegistry {
+  implements IGeneratorRegistry
+{
   constructor();
 }
 export declare const instance: GeneratorRegistry;

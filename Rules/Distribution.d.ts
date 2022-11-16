@@ -1,7 +1,6 @@
-import { IRuleRegistry } from '@civ-clone/core-rule/RuleRegistry';
 import Rule from '@civ-clone/core-rule/Rule';
 import Terrain from '@civ-clone/core-terrain/Terrain';
-export declare type IDistribution = {
+export type IDistribution = {
   cluster?: boolean;
   clusterChance?: number;
   coverage?: number;
@@ -16,9 +15,3 @@ export declare class Distribution extends Rule<
   IDistribution[]
 > {}
 export default Distribution;
-export interface IDistributionRegistry
-  extends IRuleRegistry<
-    Distribution,
-    [typeof Terrain, Terrain[]],
-    IDistribution[]
-  > {}

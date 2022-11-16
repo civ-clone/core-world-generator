@@ -8,7 +8,8 @@ export interface IGeneratorRegistry extends IConstructorRegistry<Generator> {}
 
 export class GeneratorRegistry
   extends ConstructorRegistry<Generator>
-  implements IGeneratorRegistry {
+  implements IGeneratorRegistry
+{
   constructor() {
     super(Generator);
   }

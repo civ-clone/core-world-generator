@@ -1,4 +1,3 @@
-import { IRuleRegistry } from '@civ-clone/core-rule/RuleRegistry';
 import Rule from '@civ-clone/core-rule/Rule';
 import Terrain from '@civ-clone/core-terrain/Terrain';
 
@@ -19,10 +18,3 @@ export class Distribution extends Rule<
 > {}
 
 export default Distribution;
-
-export interface IDistributionRegistry
-  extends IRuleRegistry<
-    Distribution,
-    [typeof Terrain, Terrain[]],
-    IDistribution[]
-  > {}
