@@ -12,7 +12,9 @@ export interface IGenerator {
   width(): number;
 }
 export declare class Generator implements IGenerator {
-  #private;
+  private _height;
+  private _options;
+  private _width;
   constructor(
     height: number,
     width: number,

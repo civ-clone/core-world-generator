@@ -16,26 +16,26 @@ export interface IGenerator {
 }
 
 export class Generator implements IGenerator {
-  #height: number;
-  #options: { [key: string]: any };
-  #width: number;
+  private _height: number;
+  private _options: { [key: string]: any };
+  private _width: number;
 
   constructor(
     height: number,
     width: number,
     options: { [key: string]: any } = {}
   ) {
-    this.#height = height;
-    this.#options = options;
-    this.#width = width;
+    this._height = height;
+    this._options = options;
+    this._width = width;
   }
 
   coordsToIndex(x: number, y: number): number {
-    return coordsToIndex(this.#height, this.#width, x, y);
+    return coordsToIndex(this._height, this._width, x, y);
   }
 
   distanceFrom(from: number, to: number): number {
-    return distanceFrom(this.#height, this.#width, from, to);
+    return distanceFrom(this._height, this._width, from, to);
   }
 
   generate(): Promise<Terrain[]> {
@@ -45,23 +45,23 @@ export class Generator implements IGenerator {
   }
 
   getNeighbours(index: number, directNeighbours: boolean = true): number[] {
-    return getNeighbours(this.#height, this.#width, index, directNeighbours);
+    return getNeighbours(this._height, this._width, index, directNeighbours);
   }
 
   height(): number {
-    return this.#height;
+    return this._height;
   }
 
   indexToCoords(index: number): [number, number] {
-    return indexToCoords(this.#height, this.#width, index);
+    return indexToCoords(this._height, this._width, index);
   }
 
   options(): { [key: string]: any } {
-    return this.#options;
+    return this._options;
   }
 
   width(): number {
-    return this.#width;
+    return this._width;
   }
 }
 
