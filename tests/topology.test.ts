@@ -1,5 +1,7 @@
+import createTopology, { topologyIds } from '@civ-clone/core-world/topologies';
 import { ITopology } from '@civ-clone/core-world/Topology';
 import Generator from '../Generator';
+import HexOddRTopology from '@civ-clone/core-world/HexOddRTopology';
 import SquareTopology from '@civ-clone/core-world/SquareTopology';
 import coordsToIndex from '../lib/coordsToIndex';
 import distanceFrom from '../lib/distanceFrom';
@@ -163,10 +165,101 @@ describe('Generator#topology', () => {
       topology = generator.topology();
 
     expect(topology).to.be.instanceOf(SquareTopology);
+    expect(topology.id()).to.equal('square');
     // Wrapping one step off the right and bottom edges shows the dimensions.
     expect(topology.neighbour(5, 4, 'se')).to.deep.equal([0, 0]);
     expect(topology.neighbour(0, 0, 'nw')).to.deep.equal([5, 4]);
     expect(generator.topology()).to.equal(topology);
+  });
+
+  it('should build the grid the `topologyId` option names', () => {
+    topologyIds.forEach((id) => {
+      const generator = new Generator(6, 4, { topologyId: id }),
+        topology = generator.topology();
+
+      expect(topology.id()).to.equal(id);
+      expect(generator.topology()).to.equal(topology);
+    });
+
+    expect(
+      new Generator(5, 6, { topologyId: 'square' }).topology()
+    ).to.be.instanceOf(SquareTopology);
+  });
+
+  it('should build the `topologyId` grid at the size the generator really is', () => {
+    // Like civ1-earth-generator's `Earth`, which lays out the nearest of its
+    // maps rather than the size it is asked for. 5 tall cannot wrap on a
+    // hexagonal grid; the 6 it really is can.
+    class Resized extends Generator {
+      constructor(
+        height: number,
+        width: number,
+        options: { [key: string]: any } = {}
+      ) {
+        super(height + 1, width * 2, options);
+      }
+    }
+
+    expect(() => createTopology('hex-odd-r', 5, 5)).to.throw(
+      'the height must be even'
+    );
+
+    const generator = new Resized(5, 5, { topologyId: 'hex-odd-r' }),
+      topology = generator.topology();
+
+    expect(generator.height()).to.equal(6);
+    expect(generator.width()).to.equal(10);
+    expect(topology).to.be.instanceOf(HexOddRTopology);
+    expect(topology.id()).to.equal('hex-odd-r');
+    expect(topology.wrapsY()).to.equal(true);
+    // Wrapping one step off each edge shows the dimensions are 10 x 6.
+    expect(topology.neighbour(9, 0, 'e')).to.deep.equal([0, 0]);
+    expect(topology.neighbour(0, 0, 'nw')).to.deep.equal([9, 5]);
+    expect(topology.neighbour(0, 5, 'se')).to.deep.equal([1, 0]);
+  });
+
+  it('should throw the `createTopology` error for an unknown `topologyId` when the topology is first used', () => {
+    let expected = '';
+
+    try {
+      createTopology('triangle', 6, 5);
+    } catch (e) {
+      expected = (e as Error).message;
+    }
+
+    expect(expected).to.contain("unknown topology 'triangle'");
+
+    // Constructing does not resolve the id.
+    const generator = new Generator(5, 6, { topologyId: 'triangle' });
+
+    expect(() => generator.topology()).to.throw(Error, expected);
+    expect(() => generator.getNeighbours(0)).to.throw(Error, expected);
+    expect(() => generator.distanceFrom(0, 1)).to.throw(Error, expected);
+  });
+
+  it('should find neighbours and distances on the hexagonal grid', () => {
+    // 4 wide and 6 tall; index = y * 4 + x.
+    const generator = new Generator(6, 4, { topologyId: 'hex-odd-r' });
+
+    // (2, 1), an odd row, shifted half a hex right: ne (3, 0), e (3, 1),
+    // se (3, 2), sw (2, 2), w (1, 1), nw (2, 0). All six share an edge.
+    expect(generator.getNeighbours(6)).to.deep.equal([3, 7, 11, 10, 5, 2]);
+    expect(generator.getNeighbours(6, false)).to.deep.equal([
+      3, 7, 11, 10, 5, 2,
+    ]);
+    // (1, 2), an even row: ne (1, 1), e (2, 2), se (1, 3), sw (0, 3),
+    // w (0, 2), nw (0, 1).
+    expect(generator.getNeighbours(9)).to.deep.equal([5, 10, 13, 12, 8, 4]);
+    // (0, 0), wrapping west and north: ne (0, 5), e (1, 0), se (0, 1),
+    // sw (3, 1), w (3, 0), nw (3, 5).
+    expect(generator.getNeighbours(0)).to.deep.equal([20, 1, 4, 7, 3, 23]);
+
+    // Whole hex steps, where the square grid's would be 2.83 and 1.41.
+    expect(generator.distanceFrom(0, 10)).to.equal(3);
+    expect(generator.distanceFrom(0, 5)).to.equal(2);
+    // (0, 0) to (3, 0) is one step west, round the wrap.
+    expect(generator.distanceFrom(0, 3)).to.equal(1);
+    expect(generator.distanceFrom(10, 0)).to.equal(3);
   });
 
   it('should use the topology it is given', () => {
@@ -178,6 +271,8 @@ describe('Generator#topology', () => {
         distance: (x1: number, y1: number, x2: number, y2: number): number =>
           100 + x1 + 10 * y1 + 1000 * x2 + 10000 * y2,
         edgeDirections: () => ['w'],
+        // Not a real grid, but `id` has to name one of core-world's.
+        id: () => 'square',
         neighbour: (x: number, y: number, direction: 'e' | 'w') => {
           const nextX = direction === 'e' ? x + 1 : x - 1;
 
@@ -185,11 +280,14 @@ describe('Generator#topology', () => {
         },
         offset: (direction: 'e' | 'w') =>
           direction === 'e' ? [1, 0] : [-1, 0],
+        steps: (): number => 0,
         validate: (): void => {},
         wrapsX: (): boolean => false,
         wrapsY: (): boolean => false,
       },
-      options = { topology: strip, other: 'kept' },
+      // `topology` wins over `topologyId`, which is never resolved, so even
+      // an unknown one does not throw.
+      options = { topology: strip, topologyId: 'triangle', other: 'kept' },
       generator = new Generator(5, 6, options);
 
     expect(generator.topology()).to.equal(strip);

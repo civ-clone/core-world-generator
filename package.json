@@ -33,6 +33,6 @@
     "@civ-clone/core-registry": "^0.1.0",
     "@civ-clone/core-rule": "^0.1.0",
     "@civ-clone/core-terrain": "^0.1.0",
-    "@civ-clone/core-world": "^0.1.19"
+    "@civ-clone/core-world": "^0.1.21"
   }
 }
