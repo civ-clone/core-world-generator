@@ -1,37 +1,25 @@
+import { ITopology } from '@civ-clone/core-world/Topology';
+import SquareTopology from '@civ-clone/core-world/SquareTopology';
 import indexToCoords from './indexToCoords';
 
+/**
+ * The distance between the tiles at `from` and `to`, as `topology` measures
+ * it: the short way round any wrap.
+ *
+ * Without a `topology` the grid is square, so this is the straight-line
+ * distance on a world that wraps on both axes, as it has always been.
+ */
 export const distanceFrom = (
   height: number,
   width: number,
   from: number,
-  to: number
+  to: number,
+  topology: ITopology = new SquareTopology(width, height)
 ): number => {
-  const [fromX, fromY]: [number, number] = indexToCoords(height, width, from),
-    [toX, toY]: [number, number] = indexToCoords(height, width, to),
-    map: [number, number][] = [
-      [-1, 1],
-      [-1, 0],
-      [-1, -1],
-      [0, 1],
-      [0, 0],
-      [0, -1],
-      [1, 1],
-      [1, 0],
-      [1, -1],
-    ],
-    [shortestDistance]: number[] = map
-      .map(([x, y]: [number, number]): [number, number] => [
-        x * width,
-        y * height,
-      ])
-      .map(([x, y]: [number, number]): [number, number] => [
-        fromX - toX + x,
-        fromY - toY + y,
-      ])
-      .map((coords: [number, number]): number => Math.hypot(...coords))
-      .sort((a: number, b: number): number => a - b);
+  const [fromX, fromY] = indexToCoords(height, width, from),
+    [toX, toY] = indexToCoords(height, width, to);
 
-  return shortestDistance;
+  return topology.distance(fromX, fromY, toX, toY);
 };
 
 export default distanceFrom;
