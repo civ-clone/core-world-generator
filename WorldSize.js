@@ -49,6 +49,9 @@ exports.checkPlayerRange = checkPlayerRange;
 class WorldSize {
     constructor(key, width, height, { topologyId, minPlayers, maxPlayers, players, earth = false, }) {
         const what = `WorldSize '${key}'`;
+        if (typeof key !== 'string' || key.trim() === '') {
+            throw new RangeError(`${what}: the key must be a word.`);
+        }
         (0, exports.checkWhole)(what, 'width', width, 1);
         (0, exports.checkWhole)(what, 'height', height, 1);
         (0, exports.checkTopologyId)(what, topologyId);

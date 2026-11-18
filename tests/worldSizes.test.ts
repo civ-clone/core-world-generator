@@ -43,6 +43,12 @@ describe('WorldSize', (): void => {
       .true;
   });
 
+  ['', '  '].forEach((key): void => {
+    it(`refuses a key of '${key}'`, (): void => {
+      expect(() => new WorldSize(key, 50, 80, options)).throw(RangeError);
+    });
+  });
+
   (
     [
       ['a width of 0', [0, 80, {}]],
@@ -173,7 +179,10 @@ describe('WorldSizeRegistry', (): void => {
   });
 
   it('accepts only world sizes', (): void => {
-    expect(() => new WorldSizeRegistry().register({} as WorldSize)).throw();
+    expect(() => new WorldSizeRegistry().register({} as WorldSize)).throw(
+      TypeError,
+      /Invalid entity/
+    );
   });
 
   it('has a shared instance', (): void => {

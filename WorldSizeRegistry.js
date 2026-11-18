@@ -20,8 +20,14 @@ class WorldSizeRegistry extends EntityRegistry_1.EntityRegistry {
         var _a;
         return (_a = this.entries().find((size) => size.key() === key)) !== null && _a !== void 0 ? _a : null;
     }
-    /** Refuses a size whose key is already registered, or two with the same key. */
+    /** Refuses anything but a size, a size whose key is already registered, or two with the same key. */
     register(...sizes) {
+        // Anything but a size is refused as any registry refuses it, before its key is asked for.
+        sizes.forEach((size) => {
+            if (!this.accepts(size)) {
+                super.register(size);
+            }
+        });
         sizes.forEach((size, index) => {
             const existing = this.getByKey(size.key());
             if ((existing !== null && existing !== size) ||

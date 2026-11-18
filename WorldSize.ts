@@ -113,6 +113,10 @@ export class WorldSize {
   ) {
     const what = `WorldSize '${key}'`;
 
+    if (typeof key !== 'string' || key.trim() === '') {
+      throw new RangeError(`${what}: the key must be a word.`);
+    }
+
     checkWhole(what, 'width', width, 1);
     checkWhole(what, 'height', height, 1);
     checkTopologyId(what, topologyId);

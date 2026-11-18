@@ -57,8 +57,15 @@ export class WorldSizeRegistry
     return this.entries().find((size) => size.key() === key) ?? null;
   }
 
-  /** Refuses a size whose key is already registered, or two with the same key. */
+  /** Refuses anything but a size, a size whose key is already registered, or two with the same key. */
   register(...sizes: WorldSize[]): void {
+    // Anything but a size is refused as any registry refuses it, before its key is asked for.
+    sizes.forEach((size) => {
+      if (!this.accepts(size)) {
+        super.register(size);
+      }
+    });
+
     sizes.forEach((size, index) => {
       const existing = this.getByKey(size.key());
 

@@ -38,7 +38,7 @@ export declare class WorldSizeRegistry
   /** What a size typed in may be, or `null` when the ruleset doesn't say. */
   customLimits(): CustomWorldSizeLimits | null;
   getByKey(key: string): WorldSize | null;
-  /** Refuses a size whose key is already registered, or two with the same key. */
+  /** Refuses anything but a size, a size whose key is already registered, or two with the same key. */
   register(...sizes: WorldSize[]): void;
   /**
    * Refuses bounds that aren't whole numbers of at least 1, whose minimum is above their maximum, that their grid can't
