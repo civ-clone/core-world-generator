@@ -1,15 +1,62 @@
-export interface WorldSizeOptions {
-  /** The grid the size is for: one of core-world's `topologyIds`. */
-  topologyId: string;
-  /** The fewest civilizations a game this size is offered with. */
+import { TopologyId, topologyIds } from '@civ-clone/core-world/topologies';
+
+/** The numbers of civilizations a game is offered with. */
+export interface PlayerRange {
+  /** The fewest civilizations, at least 1. */
   minPlayers: number;
-  /** The most civilizations a game this size is offered with. */
+  /** The most civilizations. */
   maxPlayers: number;
-  /** How many civilizations a game this size starts with, unless another number is chosen. */
+  /** How many civilizations a game starts with, unless another number is chosen. */
   players: number;
+}
+
+export interface WorldSizeOptions extends PlayerRange {
+  /** The grid the size is for: one of core-world's `topologyIds`. */
+  topologyId: TopologyId;
   /** Whether there is an Earth map this size. */
   earth?: boolean;
 }
+
+/** Throws a `RangeError`, naming `what`, unless `value` is a whole number of at least `minimum`. */
+export const checkWhole = (
+  what: string,
+  name: string,
+  value: number,
+  minimum: number
+): void => {
+  if (!Number.isInteger(value) || value < minimum) {
+    throw new RangeError(
+      `${what}: ${name} (${value}) must be a whole number of at least ${minimum}.`
+    );
+  }
+};
+
+/** Throws a `RangeError`, naming `what`, unless `topologyId` is one of core-world's grids. */
+export const checkTopologyId = (what: string, topologyId: string): void => {
+  if (!topologyIds.includes(topologyId as TopologyId)) {
+    throw new RangeError(
+      `${what}: topologyId '${topologyId}' isn't one of ${topologyIds
+        .map((id) => `'${id}'`)
+        .join(', ')}.`
+    );
+  }
+};
+
+/** Throws a `RangeError`, naming `what`, unless `range` is whole numbers, `minPlayers` ≥ 1, with `players` within. */
+export const checkPlayerRange = (
+  what: string,
+  { minPlayers, maxPlayers, players }: PlayerRange
+): void => {
+  checkWhole(what, 'minPlayers', minPlayers, 1);
+  checkWhole(what, 'maxPlayers', maxPlayers, minPlayers);
+  checkWhole(what, 'players', players, minPlayers);
+
+  if (players > maxPlayers) {
+    throw new RangeError(
+      `${what}: players (${players}) must be from minPlayers (${minPlayers}) to maxPlayers (${maxPlayers}).`
+    );
+  }
+};
 
 /**
  * One of the world sizes a ruleset offers a new game, by `key` (`'small'`, `'normal'`…): `width` squares across and
@@ -22,7 +69,7 @@ export class WorldSize {
   private _maxPlayers: number;
   private _minPlayers: number;
   private _players: number;
-  private _topologyId: string;
+  private _topologyId: TopologyId;
   private _width: number;
 
   constructor(
@@ -37,11 +84,12 @@ export class WorldSize {
       earth = false,
     }: WorldSizeOptions
   ) {
-    if (!(minPlayers <= players && players <= maxPlayers)) {
-      throw new RangeError(
-        `WorldSize '${key}': players (${players}) must be from minPlayers (${minPlayers}) to maxPlayers (${maxPlayers}).`
-      );
-    }
+    const what = `WorldSize '${key}'`;
+
+    checkWhole(what, 'width', width, 1);
+    checkWhole(what, 'height', height, 1);
+    checkTopologyId(what, topologyId);
+    checkPlayerRange(what, { minPlayers, maxPlayers, players });
 
     this._earth = earth;
     this._height = height;
@@ -77,7 +125,7 @@ export class WorldSize {
     return this._players;
   }
 
-  topologyId(): string {
+  topologyId(): TopologyId {
     return this._topologyId;
   }
 

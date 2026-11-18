@@ -1,15 +1,44 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorldSize = void 0;
+exports.WorldSize = exports.checkPlayerRange = exports.checkTopologyId = exports.checkWhole = void 0;
+const topologies_1 = require("@civ-clone/core-world/topologies");
+/** Throws a `RangeError`, naming `what`, unless `value` is a whole number of at least `minimum`. */
+const checkWhole = (what, name, value, minimum) => {
+    if (!Number.isInteger(value) || value < minimum) {
+        throw new RangeError(`${what}: ${name} (${value}) must be a whole number of at least ${minimum}.`);
+    }
+};
+exports.checkWhole = checkWhole;
+/** Throws a `RangeError`, naming `what`, unless `topologyId` is one of core-world's grids. */
+const checkTopologyId = (what, topologyId) => {
+    if (!topologies_1.topologyIds.includes(topologyId)) {
+        throw new RangeError(`${what}: topologyId '${topologyId}' isn't one of ${topologies_1.topologyIds
+            .map((id) => `'${id}'`)
+            .join(', ')}.`);
+    }
+};
+exports.checkTopologyId = checkTopologyId;
+/** Throws a `RangeError`, naming `what`, unless `range` is whole numbers, `minPlayers` ≥ 1, with `players` within. */
+const checkPlayerRange = (what, { minPlayers, maxPlayers, players }) => {
+    (0, exports.checkWhole)(what, 'minPlayers', minPlayers, 1);
+    (0, exports.checkWhole)(what, 'maxPlayers', maxPlayers, minPlayers);
+    (0, exports.checkWhole)(what, 'players', players, minPlayers);
+    if (players > maxPlayers) {
+        throw new RangeError(`${what}: players (${players}) must be from minPlayers (${minPlayers}) to maxPlayers (${maxPlayers}).`);
+    }
+};
+exports.checkPlayerRange = checkPlayerRange;
 /**
  * One of the world sizes a ruleset offers a new game, by `key` (`'small'`, `'normal'`…): `width` squares across and
  *  `height` down on its grid, and the numbers of civilizations it is offered with.
  */
 class WorldSize {
-    constructor(key, width, height, { topologyId, minPlayers, maxPlayers, players, earth = false }) {
-        if (!(minPlayers <= players && players <= maxPlayers)) {
-            throw new RangeError(`WorldSize '${key}': players (${players}) must be from minPlayers (${minPlayers}) to maxPlayers (${maxPlayers}).`);
-        }
+    constructor(key, width, height, { topologyId, minPlayers, maxPlayers, players, earth = false, }) {
+        const what = `WorldSize '${key}'`;
+        (0, exports.checkWhole)(what, 'width', width, 1);
+        (0, exports.checkWhole)(what, 'height', height, 1);
+        (0, exports.checkTopologyId)(what, topologyId);
+        (0, exports.checkPlayerRange)(what, { minPlayers, maxPlayers, players });
         this._earth = earth;
         this._height = height;
         this._key = key;
