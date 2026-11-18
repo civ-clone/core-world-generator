@@ -1,4 +1,8 @@
-import { TopologyId, topologyIds } from '@civ-clone/core-world/topologies';
+import {
+  TopologyId,
+  createTopology,
+  topologyIds,
+} from '@civ-clone/core-world/topologies';
 
 /** The numbers of civilizations a game is offered with. */
 export interface PlayerRange {
@@ -16,6 +20,8 @@ export interface WorldSizeOptions extends PlayerRange {
   /** Whether there is an Earth map this size. */
   earth?: boolean;
 }
+
+// The checks below are shared with `WorldSizeRegistry`, not meant for anything else.
 
 /** Throws a `RangeError`, naming `what`, unless `value` is a whole number of at least `minimum`. */
 export const checkWhole = (
@@ -38,6 +44,27 @@ export const checkTopologyId = (what: string, topologyId: string): void => {
       `${what}: topologyId '${topologyId}' isn't one of ${topologyIds
         .map((id) => `'${id}'`)
         .join(', ')}.`
+    );
+  }
+};
+
+/**
+ * Throws a `RangeError`, naming `what`, unless `topologyId`'s grid can be `width` by `height` (`createTopology`): the
+ *  staggered and hexagonal grids need an even height.
+ */
+export const checkBuildable = (
+  what: string,
+  topologyId: TopologyId,
+  width: number,
+  height: number
+): void => {
+  try {
+    createTopology(topologyId, width, height);
+  } catch (error) {
+    throw new RangeError(
+      `${what}: a '${topologyId}' world can't be ${width} by ${height}: ${
+        (error as Error).message
+      }`
     );
   }
 };
@@ -89,6 +116,7 @@ export class WorldSize {
     checkWhole(what, 'width', width, 1);
     checkWhole(what, 'height', height, 1);
     checkTopologyId(what, topologyId);
+    checkBuildable(what, topologyId, width, height);
     checkPlayerRange(what, { minPlayers, maxPlayers, players });
 
     this._earth = earth;

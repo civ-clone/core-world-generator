@@ -26,6 +26,16 @@ export declare const checkTopologyId: (
   what: string,
   topologyId: string
 ) => void;
+/**
+ * Throws a `RangeError`, naming `what`, unless `topologyId`'s grid can be `width` by `height` (`createTopology`): the
+ *  staggered and hexagonal grids need an even height.
+ */
+export declare const checkBuildable: (
+  what: string,
+  topologyId: TopologyId,
+  width: number,
+  height: number
+) => void;
 /** Throws a `RangeError`, naming `what`, unless `range` is whole numbers, `minPlayers` ≥ 1, with `players` within. */
 export declare const checkPlayerRange: (
   what: string,

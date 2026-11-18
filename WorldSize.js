@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorldSize = exports.checkPlayerRange = exports.checkTopologyId = exports.checkWhole = void 0;
+exports.WorldSize = exports.checkPlayerRange = exports.checkBuildable = exports.checkTopologyId = exports.checkWhole = void 0;
 const topologies_1 = require("@civ-clone/core-world/topologies");
+// The checks below are shared with `WorldSizeRegistry`, not meant for anything else.
 /** Throws a `RangeError`, naming `what`, unless `value` is a whole number of at least `minimum`. */
 const checkWhole = (what, name, value, minimum) => {
     if (!Number.isInteger(value) || value < minimum) {
@@ -18,6 +19,19 @@ const checkTopologyId = (what, topologyId) => {
     }
 };
 exports.checkTopologyId = checkTopologyId;
+/**
+ * Throws a `RangeError`, naming `what`, unless `topologyId`'s grid can be `width` by `height` (`createTopology`): the
+ *  staggered and hexagonal grids need an even height.
+ */
+const checkBuildable = (what, topologyId, width, height) => {
+    try {
+        (0, topologies_1.createTopology)(topologyId, width, height);
+    }
+    catch (error) {
+        throw new RangeError(`${what}: a '${topologyId}' world can't be ${width} by ${height}: ${error.message}`);
+    }
+};
+exports.checkBuildable = checkBuildable;
 /** Throws a `RangeError`, naming `what`, unless `range` is whole numbers, `minPlayers` ≥ 1, with `players` within. */
 const checkPlayerRange = (what, { minPlayers, maxPlayers, players }) => {
     (0, exports.checkWhole)(what, 'minPlayers', minPlayers, 1);
@@ -38,6 +52,7 @@ class WorldSize {
         (0, exports.checkWhole)(what, 'width', width, 1);
         (0, exports.checkWhole)(what, 'height', height, 1);
         (0, exports.checkTopologyId)(what, topologyId);
+        (0, exports.checkBuildable)(what, topologyId, width, height);
         (0, exports.checkPlayerRange)(what, { minPlayers, maxPlayers, players });
         this._earth = earth;
         this._height = height;

@@ -31,7 +31,10 @@ class WorldSizeRegistry extends EntityRegistry_1.EntityRegistry {
         });
         super.register(...sizes);
     }
-    /** Refuses bounds that aren't whole numbers of at least 1, or whose minimum is above their maximum. */
+    /**
+     * Refuses bounds that aren't whole numbers of at least 1, whose minimum is above their maximum, that their grid can't
+     *  be, or that no size can meet.
+     */
     setCustomLimits(limits) {
         if (limits !== null) {
             const what = 'WorldSizeRegistry custom limits';
@@ -41,8 +44,15 @@ class WorldSizeRegistry extends EntityRegistry_1.EntityRegistry {
                 (0, WorldSize_1.checkWhole)(what, `min${name}`, limits[`min${name}`], 1);
                 (0, WorldSize_1.checkWhole)(what, `max${name}`, limits[`max${name}`], limits[`min${name}`]);
             });
+            (0, WorldSize_1.checkBuildable)(what, limits.topologyId, limits.minWidth, limits.minHeight);
+            (0, WorldSize_1.checkBuildable)(what, limits.topologyId, limits.maxWidth, limits.maxHeight);
+            if (limits.minArea > limits.maxWidth * limits.maxHeight ||
+                limits.maxArea < limits.minWidth * limits.minHeight) {
+                throw new RangeError(`${what}: no size from ${limits.minWidth} by ${limits.minHeight} to ${limits.maxWidth} by ${limits.maxHeight} has from ${limits.minArea} to ${limits.maxArea} squares.`);
+            }
         }
-        this._customLimits = limits;
+        // A copy, so the limits can't be changed past these checks.
+        this._customLimits = limits === null ? null : Object.freeze({ ...limits });
     }
 }
 exports.WorldSizeRegistry = WorldSizeRegistry;

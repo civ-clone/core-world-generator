@@ -4,6 +4,7 @@ import {
 } from '@civ-clone/core-registry/EntityRegistry';
 import WorldSize, {
   PlayerRange,
+  checkBuildable,
   checkPlayerRange,
   checkTopologyId,
   checkWhole,
@@ -12,7 +13,8 @@ import { TopologyId } from '@civ-clone/core-world/topologies';
 
 /**
  * A world size typed in instead of one of the sizes: the grid it's on, the bounds it must be within (each inclusive), and
- *  the numbers of civilizations a game that size is offered with.
+ *  the numbers of civilizations a game that size is offered with. A size typed in must also be one its grid can be
+ *  (`createTopology`): an even height on the staggered and hexagonal grids.
  */
 export interface CustomWorldSizeLimits extends PlayerRange {
   topologyId: TopologyId;
@@ -76,7 +78,10 @@ export class WorldSizeRegistry
     super.register(...sizes);
   }
 
-  /** Refuses bounds that aren't whole numbers of at least 1, or whose minimum is above their maximum. */
+  /**
+   * Refuses bounds that aren't whole numbers of at least 1, whose minimum is above their maximum, that their grid can't
+   *  be, or that no size can meet.
+   */
   setCustomLimits(limits: CustomWorldSizeLimits | null): void {
     if (limits !== null) {
       const what = 'WorldSizeRegistry custom limits';
@@ -93,9 +98,32 @@ export class WorldSizeRegistry
           limits[`min${name}`]
         );
       });
+
+      checkBuildable(
+        what,
+        limits.topologyId,
+        limits.minWidth,
+        limits.minHeight
+      );
+      checkBuildable(
+        what,
+        limits.topologyId,
+        limits.maxWidth,
+        limits.maxHeight
+      );
+
+      if (
+        limits.minArea > limits.maxWidth * limits.maxHeight ||
+        limits.maxArea < limits.minWidth * limits.minHeight
+      ) {
+        throw new RangeError(
+          `${what}: no size from ${limits.minWidth} by ${limits.minHeight} to ${limits.maxWidth} by ${limits.maxHeight} has from ${limits.minArea} to ${limits.maxArea} squares.`
+        );
+      }
     }
 
-    this._customLimits = limits;
+    // A copy, so the limits can't be changed past these checks.
+    this._customLimits = limits === null ? null : Object.freeze({ ...limits });
   }
 }
 

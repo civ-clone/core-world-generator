@@ -50,6 +50,11 @@ describe('WorldSize', (): void => {
       ['a fractional width', [50.5, 80, {}]],
       ['a height that is NaN', [50, NaN, {}]],
       ['an unknown grid', [50, 80, { topologyId: 'staggerd-iso' }]],
+      ['an odd height on the staggered grid', [50, 81, {}]],
+      [
+        'an odd height on the hexagonal grid',
+        [74, 55, { topologyId: 'hex-odd-r' }],
+      ],
       ['no civilizations at least', [50, 80, { minPlayers: 0 }]],
       ['fewer at most than at least', [50, 80, { maxPlayers: 2 }]],
       ['a default above the most', [50, 80, { players: 8 }]],
@@ -127,6 +132,15 @@ describe('WorldSizeRegistry', (): void => {
       ['a fractional bound', { maxArea: 1000.5 }],
       ['an unknown grid', { topologyId: 'hex' }],
       ['a default above the most civilizations', { players: 8 }],
+      ['fewer civilizations at most than at least', { maxPlayers: 2 }],
+      ['a fractional fewest civilizations', { minPlayers: 2.5 }],
+      ['an odd least height on the staggered grid', { minHeight: 21 }],
+      ['an odd most height on the staggered grid', { maxHeight: 249 }],
+      [
+        'more squares at least than the largest size has',
+        { minWidth: 10, maxWidth: 20, minHeight: 10, maxHeight: 20 },
+      ],
+      ['fewer squares at most than the smallest size has', { maxArea: 300 }],
     ] as [string, Partial<CustomWorldSizeLimits>][]
   ).forEach(([name, changes]): void => {
     it(`refuses custom limits with ${name}`, (): void => {
@@ -137,6 +151,25 @@ describe('WorldSizeRegistry', (): void => {
         } as CustomWorldSizeLimits)
       ).throw(RangeError);
     });
+  });
+
+  it('keeps its own copy of the custom limits', (): void => {
+    const registry = new WorldSizeRegistry(),
+      given = { ...limits };
+
+    registry.setCustomLimits(given);
+    given.minWidth = -5;
+
+    expect(registry.customLimits()!.minWidth).equal(20);
+  });
+
+  it('lists the same size registered twice in one call once', (): void => {
+    const registry = new WorldSizeRegistry(),
+      size = new WorldSize('normal', 50, 80, options);
+
+    registry.register(size, size);
+
+    expect(registry.entries()).eql([size]);
   });
 
   it('accepts only world sizes', (): void => {

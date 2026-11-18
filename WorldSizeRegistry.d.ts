@@ -6,7 +6,8 @@ import WorldSize, { PlayerRange } from './WorldSize';
 import { TopologyId } from '@civ-clone/core-world/topologies';
 /**
  * A world size typed in instead of one of the sizes: the grid it's on, the bounds it must be within (each inclusive), and
- *  the numbers of civilizations a game that size is offered with.
+ *  the numbers of civilizations a game that size is offered with. A size typed in must also be one its grid can be
+ *  (`createTopology`): an even height on the staggered and hexagonal grids.
  */
 export interface CustomWorldSizeLimits extends PlayerRange {
   topologyId: TopologyId;
@@ -39,7 +40,10 @@ export declare class WorldSizeRegistry
   getByKey(key: string): WorldSize | null;
   /** Refuses a size whose key is already registered, or two with the same key. */
   register(...sizes: WorldSize[]): void;
-  /** Refuses bounds that aren't whole numbers of at least 1, or whose minimum is above their maximum. */
+  /**
+   * Refuses bounds that aren't whole numbers of at least 1, whose minimum is above their maximum, that their grid can't
+   *  be, or that no size can meet.
+   */
   setCustomLimits(limits: CustomWorldSizeLimits | null): void;
 }
 export declare const instance: WorldSizeRegistry;
