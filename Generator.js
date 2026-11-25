@@ -34,6 +34,16 @@ class Generator {
     height() {
         return this._height;
     }
+    /**
+     * Which generator this is, for a world to record that it was made by it: a
+     * world keeps it in a save, so a rule that plays differently on a particular
+     * map (the Earth) can still tell once the game is loaded, when the generator
+     * itself is long gone. `null` here: a generator whose worlds have nothing
+     * particular to them needn't say.
+     */
+    id() {
+        return null;
+    }
     indexToCoords(index) {
         return (0, indexToCoords_1.default)(this._height, this._width, index);
     }

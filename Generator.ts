@@ -12,6 +12,7 @@ export interface IGenerator {
   generate(): Promise<Terrain[]>;
   getNeighbours(index: number, directNeighbours: boolean): number[];
   height(): number;
+  id(): string | null;
   indexToCoords(index: number): [number, number];
   options(): { [key: string]: any };
   topology(): ITopology;
@@ -66,6 +67,17 @@ export class Generator implements IGenerator {
 
   height(): number {
     return this._height;
+  }
+
+  /**
+   * Which generator this is, for a world to record that it was made by it: a
+   * world keeps it in a save, so a rule that plays differently on a particular
+   * map (the Earth) can still tell once the game is loaded, when the generator
+   * itself is long gone. `null` here: a generator whose worlds have nothing
+   * particular to them needn't say.
+   */
+  id(): string | null {
+    return null;
   }
 
   indexToCoords(index: number): [number, number] {
